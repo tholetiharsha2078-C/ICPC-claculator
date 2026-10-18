@@ -30,10 +30,13 @@ input:focus{outline:none;border-color:var(--c1);box-shadow:0 0 0 3px rgba(34,211
 .btn,.tab{border:1px solid var(--bd);background:var(--in);padding:10px 18px;border-radius:12px;cursor:pointer;position:relative;overflow:hidden}
 .btn:hover,.tab:hover{border-color:var(--c1);box-shadow:0 0 20px rgba(34,211,238,.35)}
 .btn.go,.tab.on{background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3));color:#07081c;font-weight:800;border-color:transparent}
-.seat{text-align:center;padding:14px 0 6px}
-.seat small{color:var(--mut)}
-.num{font-size:clamp(4.6rem,19vw,9rem);font-weight:900;line-height:1;background:linear-gradient(180deg,var(--c1),var(--c3));-webkit-background-clip:text;background-clip:text;color:transparent;font-variant-numeric:tabular-nums}
-.num.txt{font-size:clamp(2.2rem,9vw,4.2rem);padding:.35em 0}
+.team-lookup{margin:0 0 18px;padding:14px 16px;border:1px solid var(--bd);border-radius:16px;background:rgba(0,0,0,.22)}
+.team-lookup h3{margin:0 0 8px}
+.team-lookup .tabs{margin:0 0 8px}
+.team-lookup .tab{padding:6px 12px;font-size:.88rem}
+.team-lookup .row input{min-width:140px;padding:8px 11px}
+.team-lookup .tw{max-height:260px}
+.team-lookup .note{margin-bottom:0}
 .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin:14px 0}
 .stat{background:var(--in);border:1px solid var(--bd);border-radius:16px;padding:14px;}
 .stat:hover{border-color:var(--c2);box-shadow:0 12px 30px rgba(167,139,250,.3)}
@@ -74,48 +77,26 @@ ol{color:var(--mut);padding-left:20px;margin:0}
 </section>
 
 <section class="card">
-<h2><b>1</b>Seat number</h2>
-<div class="grid">
-<div><label for="base">Base value</label><input type="number" id="base" value="140"></div>
-<div><label for="gs">Distinct colleges from rank</label><input type="number" id="gs" value="1"></div>
-<div><label for="ge">Distinct colleges to rank</label><input type="number" id="ge" value="140"></div>
-<div><label for="from">Counting range starts at rank</label><input type="number" id="from" value="141"></div>
-<div><label for="to">Counting range ends at rank</label><input type="number" id="to" value="1558"></div>
-</div>
-<div class="err" id="e1"></div>
-<div class="seat"><small id="slab">Your seat number</small><div class="num" id="seat">-</div><div id="formula" class="note"></div>
-<div class="row" style="justify-content:center;margin:14px auto 0;max-width:460px"><input type="number" id="rk" placeholder="Enter a rank to see its seat number"><button class="btn go" id="rkb" type="button">Show</button></div></div>
-<div class="stats">
-<div class="stat"><b id="s1">0</b><span>Distinct colleges in their range</span></div>
-<div class="stat"><b id="s2">0</b><span>New colleges counted</span></div>
-<div class="stat"><b id="s3">0</b><span>Skipped (repeated or already seen)</span></div>
-</div>
-<details id="d1"><summary>Counted colleges (new, valid)</summary><div id="l1"></div></details>
-<details id="d2"><summary>Skipped colleges (invalid)</summary><div id="l2"></div></details>
-</section>
-
-<section class="card">
-<h2><b>2</b>Team selection</h2>
+<p class="note" role="note"><b>Note:</b> This calculator is for Amritapuri only. Ranks and seat numbers may change, and some may not appear in the loaded rank list.</p>
+<h2><b>1</b>Team selection</h2>
 <ol>
 <li>Ranks 1-50: all selected, with no limit per institution.</li>
 <li>Ranks 51-100: up to X teams in total per institution, counting those already selected.</li>
 <li>Ranks 101-140: up to Y teams in total per institution.</li>
-<li>Ranks 141 onward: one team per institution per pass, starting with institutions that have nobody selected, until the general slots are full.</li>
+<li>Ranks 141 onward: one team per institution per pass, starting with institutions that have nobody selected, until the 360 general slots are full.</li>
 </ol>
 <div class="grid" style="margin-top:14px">
 <div><label for="cx">X (ranks 51-100 cap)</label><input type="number" id="cx" value="5" min="1"></div>
 <div><label for="cy">Y (ranks 101-140 cap)</label><input type="number" id="cy" value="2" min="1"></div>
-<div><label for="sl">General slots</label><input type="number" id="sl" value="360" min="1"></div>
 </div>
 <div class="err" id="e2"></div>
 <div class="stats" id="stats2"></div>
-<h3>Look something up</h3>
-<div class="tabs"><button class="tab on" data-m="inst" type="button">Institution</button><button class="tab" data-m="rank" type="button">Rank</button><button class="tab" data-m="team" type="button">Team name</button></div>
-<div class="row"><input type="text" id="q" list="inst" placeholder="Institution name" autocomplete="off"></div>
-<datalist id="inst"></datalist>
+<div class="team-lookup">
+<h3>Find by rank or team name</h3>
+<div class="tabs"><button class="tab on" data-m="rank" type="button">Rank</button><button class="tab" data-m="team" type="button">Team name</button></div>
+<div class="row"><input type="number" id="q" placeholder="Enter a rank" autocomplete="off"></div>
 <div id="res"></div>
-<details id="d3"><summary>Selected teams</summary><div id="l3"></div></details>
-<details id="d4"><summary>Low chance teams</summary><div id="l4"></div></details>
+</div>
 </section>
 </main>
 
@@ -126,51 +107,27 @@ function deb(f,ms){var t;return function(){clearTimeout(t);t=setTimeout(f,ms)}}
 function esc(s){return String(s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
 var builtin=D.t.map(function(r,i){return{id:i,rk:r[0],team:r[1],col:D.c[r[2]]}}),rows=[];
 function tbl(h,b){return'<div class="tw"><table><thead><tr>'+h.map(function(x){return'<th>'+x+'</th>'}).join('')+'</tr></thead><tbody>'+b+'</tbody></table></div>'}
-function countUp(el,to){el._k=(el._k||0)+1;el.textContent=to}
-
-/* ---- Block 1: seat number ---- */
+/* ---- Seat number lookup ---- */
 var info={};
 function calcSeat(){
-  var base=+$('#base').value,gs=+$('#gs').value,ge=+$('#ge').value,a=+$('#from').value,b=+$('#to').value;
-  if(!(base>=0&&gs>=1&&ge>=gs&&a>=1&&b>=a)){$('#e1').textContent='Check the numbers: each range must start at 1 or more and end at or after its start.';return}
-  $('#e1').textContent='';
-  var g1={},seen={},n=0,c=0,skip=0;info={};endR=b;
+  var base=140,gs=1,ge=140,a=141,g1={},seen={},c=0;
+  info={};
   rows.forEach(function(t){if(t.rk>=gs&&t.rk<=ge){g1[t.col]=1;seen[t.col]=1}});
   rows.forEach(function(t){
     if(t.rk>=gs&&t.rk<=ge)info[t.id]={s:'g1'};
     else if(t.rk>=a){
-      if(seen[t.col]){if(t.rk<=b)skip++;info[t.id]={s:'rep',why:g1[t.col]?'College is already in the distinct list (ranks '+gs+'-'+ge+')':'College was already counted earlier in the range'}}
-      else{seen[t.col]=1;c++;if(t.rk<=b)n++;info[t.id]={s:'ok',seat:base+c}}
+      if(seen[t.col])info[t.id]={s:'rep',why:g1[t.col]?'College is already in the distinct list (ranks '+gs+'-'+ge+')':'College was already counted earlier in the range'};
+      else{seen[t.col]=1;c++;info[t.id]={s:'ok',seat:base+c}}
     }else info[t.id]={s:'out'};
   });
-  total=base+n;ftxt=base+' + '+n+' = '+total;
-  countUp($('#s1'),Object.keys(g1).length);countUp($('#s2'),n);countUp($('#s3'),skip);
-  checkRank();lists1();
-}
-function lists1(){
-  var a=[],b=[];
-  rows.forEach(function(t){var i=info[t.id];if(i.s==='ok'&&t.rk<=endR)a.push('<tr><td>'+i.seat+'</td><td>'+t.rk+'</td><td>'+esc(t.team)+'</td><td>'+esc(t.col)+'</td></tr>');else if(i.s==='rep'&&t.rk<=endR)b.push('<tr><td>Invalid</td><td>'+esc(t.team)+'</td><td>'+esc(t.col)+'</td><td>'+i.why+'</td></tr>')});
-  if($('#d1').open)$('#l1').innerHTML='<p class="note"><b>'+a.length+'</b> colleges counted.</p>'+tbl(['Seat','Rank','Team','College'],a.join(''));
-  if($('#d2').open)$('#l2').innerHTML='<p class="note"><b>'+b.length+'</b> teams skipped.</p>'+tbl(['Rank','Team','College','Reason'],b.join(''));
-}
-var total=0,ftxt='',endR=0,sub='';
-function checkRank(){
-  var v=sub,el=$('#seat'),lab=$('#slab'),f=$('#formula');
-  function none(){el._k=(el._k||0)+1;el.classList.add('txt');el.textContent='No seat number'}
-  if(!v){lab.textContent='Your seat number';el.classList.remove('txt');el._k=(el._k||0)+1;el.textContent='-';f.textContent='Enter a rank below and press Show.';return}
-  var n=parseInt(v,10),m=rows.filter(function(t){return t.rk===n});
-  lab.textContent='Seat number for rank '+v;
-  if(!m.length){none();f.textContent='No team has that rank.';return}
-  var i=info[m[0].id];
-  if(i.s==='ok'){el.classList.remove('txt');countUp(el,i.seat)}else none();
-  f.textContent=m.map(function(t){var j=info[t.id];return t.team+' ('+t.col+'): '+(j.s==='ok'?'seat '+j.seat:j.s==='g1'?'college is in the distinct college list':j.s==='rep'?j.why:'rank is before the counting range starts')}).join(' | ');
+  look();
 }
 
 /* ---- Block 2: selection ---- */
 var sel={},why={},S=360;
 function runSel(){
-  var X=+$('#cx').value,Y=+$('#cy').value;S=+$('#sl').value;
-  if(!(X>=1&&Y>=1&&S>=1)){$('#e2').textContent='X, Y and the general slots must each be 1 or more.';return}
+  var X=+$('#cx').value,Y=+$('#cy').value;
+  if(!(X>=1&&Y>=1)){$('#e2').textContent='X and Y must each be 1 or more.';return}
   $('#e2').textContent='';
   var cnt={},n=0,pass=0;sel={};why={};
   function pick(t,s){sel[t.id]=s;cnt[t.col]=(cnt[t.col]||0)+1;n++}
@@ -189,43 +146,33 @@ function runSel(){
   rows.forEach(function(t){var s=sel[t.id];if(s===undefined)return;var g=s.indexOf('General')===0?'General passes':s;by[g]=(by[g]||0)+1;ins[t.col]=1});
   var tiles=[['Total selected',n],['Ranks 1-50',by['Ranks 1-50']||0],['Ranks 51-100',by['Ranks 51-100']||0],['Ranks 101-140',by['Ranks 101-140']||0],['General passes ('+pass+')',by['General passes']||0],['Institutions',Object.keys(ins).length]];
   $('#stats2').innerHTML=tiles.map(function(t){return'<div class="stat"><b>'+t[1]+'</b><span>'+t[0]+'</span></div>'}).join('');
-  look();lists2();
+  look();
 }
-function lists2(){
-  var a=[],b=[];
-  rows.forEach(function(t){var s=sel[t.id];if(s!==undefined)a.push('<tr><td>'+t.rk+'</td><td>'+esc(t.team)+'</td><td>'+esc(t.col)+'</td><td>'+s+'</td></tr>');else b.push('<tr><td>'+t.rk+'</td><td>'+esc(t.team)+'</td><td>'+esc(t.col)+'</td><td>'+(why[t.id]||'All '+S+' slots were filled before this team')+'</td></tr>')});
-  if($('#d3').open)$('#l3').innerHTML='<p class="note"><b>'+a.length+'</b> teams selected.</p>'+tbl(['Rank','Team','College','Stage'],a.join(''));
-  if($('#d4').open)$('#l4').innerHTML='<p class="note"><b>'+b.length+'</b> teams with a low chance.</p>'+tbl(['Rank','Team','College','Reason'],b.join(''));
-}
-var mode='inst',ph={inst:'Institution name',rank:'Rank number',team:'Team name'};
+var mode='rank';
 function look(){
   var q=$('#q').value.trim(),o=$('#res');
   if(!q){o.innerHTML='';return}
   var ql=q.toLowerCase(),m;
-  if(mode==='rank'){var n=parseInt(q,10);if(isNaN(n)){o.innerHTML='<p class="err">Enter a rank number.</p>';return}m=rows.filter(function(t){return t.rk===n})}
-  else m=rows.filter(function(t){return(mode==='inst'?t.col:t.team).toLowerCase().indexOf(ql)>-1});
+  if(mode==='rank'){var n=Number(q);if(!Number.isInteger(n)||n<1){o.innerHTML='<p class="err">Enter a valid rank number.</p>';return}m=rows.filter(function(t){return t.rk===n})}
+  else m=rows.filter(function(t){return t.team.toLowerCase().indexOf(ql)>-1});
   if(!m.length){o.innerHTML='<p class="err">Nothing found. Check the spelling or the number.</p>';return}
   var chosen=m.filter(function(t){return sel[t.id]!==undefined}),h='';
   if(m.length===1)h+='<div class="badge '+(chosen.length?'ok':'no')+'">'+(chosen.length?'Selected':'Low chance')+'</div>';
   h+='<p class="note"><b>'+m.length+'</b> team'+(m.length>1?'s':'')+' found, <b>'+chosen.length+'</b> selected.';
-  if(mode==='inst'){var b={};chosen.forEach(function(t){b[sel[t.id]]=(b[sel[t.id]]||0)+1});var k=Object.keys(b);if(k.length)h+=' '+k.map(function(s){return s+': '+b[s]}).join(', ')+'.'}
-  h+='</p>'+tbl(['Rank','Team','College','Status','Details'],m.slice(0,300).map(function(t){
+  h+='</p>'+tbl(['Rank','Team','College','Seat number','Status','Details'],m.slice(0,300).map(function(t){
     var s=sel[t.id],y=s!==undefined;
-    return'<tr><td>'+t.rk+'</td><td>'+esc(t.team)+'</td><td>'+esc(t.col)+'</td><td><span class="pill '+(y?'ok':'no')+'">'+(y?'Selected':'Low chance')+'</span></td><td>'+(y?s:(why[t.id]||'All '+S+' slots were filled before this team'))+'</td></tr>'}).join(''));
+    var seat=info[t.id],seatText=seat&&seat.s==='ok'?seat.seat:seat&&seat.s==='rep'?'Not assigned':seat&&seat.s==='g1'?'Distinct range':'Not assigned';
+    return'<tr><td>'+t.rk+'</td><td>'+esc(t.team)+'</td><td>'+esc(t.col)+'</td><td>'+seatText+'</td><td><span class="pill '+(y?'ok':'no')+'">'+(y?'Selected':'Low chance')+'</span></td><td>'+(y?s:(why[t.id]||'All '+S+' slots were filled before this team'))+'</td></tr>'}).join(''));
   o.innerHTML=h;
 }
 
 /* ---- Wiring ---- */
-['#base','#gs','#ge','#from','#to'].forEach(function(s){$(s).addEventListener('input',deb(calcSeat,200))});
-['#cx','#cy','#sl'].forEach(function(s){$(s).addEventListener('input',deb(runSel,200))});
-function submitRank(){sub=$('#rk').value.trim();checkRank()}
-$('#rkb').onclick=submitRank;$('#rk').addEventListener('keydown',function(e){if(e.key==='Enter')submitRank()});
+['#cx','#cy'].forEach(function(s){$(s).addEventListener('input',deb(runSel,200))});
 $('#q').addEventListener('input',deb(look,150));
-['#d1','#d2'].forEach(function(d){$(d).addEventListener('toggle',lists1)});['#d3','#d4'].forEach(function(d){$(d).addEventListener('toggle',lists2)});
 document.querySelectorAll('.tabs:not(#f1) .tab').forEach(function(t){t.onclick=function(){
   mode=t.dataset.m;
   document.querySelectorAll('.tabs:not(#f1) .tab').forEach(function(x){x.classList.toggle('on',x===t)});
-  var q=$('#q');q.placeholder=ph[mode];q.value='';mode==='inst'?q.setAttribute('list','inst'):q.removeAttribute('list');
+  var q=$('#q');q.placeholder=mode==='rank'?'Enter a rank':'Enter a team name';q.value='';
   q.type=mode==='rank'?'number':'text';look();
 }});
 
@@ -233,10 +180,8 @@ document.querySelectorAll('.tabs:not(#f1) .tab').forEach(function(t){t.onclick=f
 /* ---- Rank list loading ---- */
 function loadRows(a,name){
   rows=a;
-  var mx=0,seen={},o=[];
-  rows.forEach(function(t){if(t.rk>mx)mx=t.rk;if(!seen[t.col]){seen[t.col]=1;o.push(t.col)}});
-  $('#to').value=mx;
-  $('#inst').innerHTML=o.sort().map(function(n){return'<option value="'+esc(n)+'">'}).join('');
+  var mx=0;
+  rows.forEach(function(t){if(t.rk>mx)mx=t.rk});
   $('#status').textContent='Using '+name+': '+rows.length+' teams, last rank '+mx+'.';
   $('#status').classList.remove('err');
   calcSeat();runSel();
